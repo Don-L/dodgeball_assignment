@@ -3,7 +3,7 @@ require_relative('team')
 
 class Match
 
-  attr_accessor(:home_id, :away_id, :result)
+  attr_accessor(:home_id, :away_id, :result, :league_id)
   attr_reader(:id)
 
 
@@ -11,6 +11,7 @@ class Match
   def initialize(options)
 
     @id = options['id'].to_i
+    @league_id = options['league_id'].to_i
     @home_id = options['home_id'].to_i
     @away_id = options['away_id'].to_i
     @result = options['result'].to_i
@@ -23,11 +24,11 @@ class Match
 
     sql = "INSERT INTO matches (
 
-                home_id, away_id, result )
+                league_id, home_id, away_id, result )
 
             VALUES (
 
-                #{@home_id}, #{@away_id}, 0 )
+                #{league_id}, #{@home_id}, #{@away_id}, #{@result} )
 
             RETURNING *;"
 
@@ -53,11 +54,11 @@ class Match
   end
 
 
-  def update(options_hash)
+  def update(options)
 
     sql = "UPDATE matches
 
-          SET #{options_hash.keys[0]} = #{options_hash.values[0]}
+          SET #{options.keys[0]} = #{options.values[0]}
 
           WHERE id = #{@id};"
 
@@ -77,7 +78,7 @@ class Match
 
 
 
-  def print_match
+  def print_upcoming_match
 
     sql = "SELECT * FROM teams WHERE id IN(SELECT home_id FROM matches 
           WHERE id = #{@id});"
@@ -95,23 +96,41 @@ class Match
 
 
 
-  def self.matches_in_order
+  def print_match_result
 
-    sql = "SELECT * FROM matches WHERE result = 0 ORDER BY id ASC;"
+    print_upcoming_match
 
-    Match.map_items(sql)
+    if @result == 1
+      puts 'HOME WIN'
+    elsif @result == 2
+      puts 'AWAY WIN'
+    elsif @result == 3
+      puts 'DRAW'
+    end
 
-  end
-
-
-
-  def self.next_match
-
-    sql = "SELECT * FROM matches WHERE result = 0 ORDER BY id ASC;"
-
-    Match.map_item(sql)
+    puts ' '
 
   end
+
+
+
+  # def self.matches_in_order
+
+  #   sql = "SELECT * FROM matches WHERE result = 0 ORDER BY id ASC;"
+
+  #   Match.map_items(sql)
+
+  # end
+
+
+
+  # def self.next_match
+
+  #   sql = "SELECT * FROM matches WHERE result = 0 ORDER BY id ASC;"
+
+  #   Match.map_item(sql)
+
+  # end
 
 
   def self.map_items(sql)

@@ -1,14 +1,17 @@
 require_relative('../db/sql_runner')
+require_relative('match')
+require_relative('league')
 
 class Team
 
-attr_accessor(:name, :points, :matches_played)
+attr_accessor(:name, :points, :matches_played, :league_id)
 attr_reader(:id)
 
 
 def initialize(options)
 
   @id = options['id'].to_i
+  @league_id = options['league_id'].to_i
   @name = options['name']
   @matches_played = options['matches_played'].to_i
   @points = options['points'].to_i
@@ -21,11 +24,11 @@ def save
 
   sql = "INSERT INTO teams (
 
-              name, matches_played, points )
+              league_id, name, matches_played, points )
 
           VALUES (
 
-              '#{@name}', 0, 0 )
+              #{@league_id}, '#{@name}', #{matches_played}, #{points} )
 
           RETURNING *"
 
@@ -53,11 +56,11 @@ end
 
 
 
-def update(options_hash)
+def update(options)
 
   sql = "UPDATE teams
 
-        SET #{options_hash.keys[0]} = '#{options_hash.values[0]}'
+        SET #{options.keys[0]} = '#{options.values[0]}'
 
         WHERE id = #{@id}"
 
@@ -70,6 +73,16 @@ end
 def self.all
 
   sql = "SELECT * from teams;"
+
+  return Team.map_items(sql)
+
+end
+
+
+
+def self.all_by_league(league_id)
+
+  sql = "SELECT * from teams WHERE league_id = #{league_id}"
 
   return Team.map_items(sql)
 
@@ -94,6 +107,26 @@ end
 
 
 
+def team_upcoming_matches
+
+  sql = "SELECT * FROM matches WHERE (result = 0 AND home_id = #{id}) OR (result = 0 AND away_id = #{id});"
+
+  Match.map_items(sql)
+
+end
+
+
+
+def team_results
+
+  sql = "SELECT * FROM matches WHERE (result > 0 AND home_id = #{id}) OR (result > 0 AND away_id = #{id});"
+
+  Match.map_items(sql)
+
+end
+
+
+
 def self.map_items(sql)
 
   teams = SqlRunner.run( sql )
@@ -110,23 +143,6 @@ def self.map_item(sql)
   return result.first
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

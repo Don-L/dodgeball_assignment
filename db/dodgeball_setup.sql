@@ -1,22 +1,22 @@
 DROP TABLE matches;
 DROP TABLE teams;
--- DROP TABLE leagues;
+DROP TABLE leagues;
 
 
--- CREATE TABLE leagues (
+CREATE TABLE leagues (
 
---   id serial4 primary key,
---   name VARCHAR(255)
+  id serial4 primary key,
+  name VARCHAR(255)
 
--- );
+);
 
 CREATE TABLE teams (
 
   id serial4 primary key,
-  -- league_id INT4 references leagues(id) ON DELETE CASCADE,
+  league_id INT4 references leagues(id) ON DELETE CASCADE,
   name VARCHAR(255),
   matches_played INT4,
-  points INT4,
+  points INT4
 
 );
 
@@ -24,6 +24,7 @@ CREATE TABLE teams (
 CREATE TABLE matches (
 
   id serial4 primary key,
+  league_id INT4 references leagues(id) ON DELETE CASCADE,
   home_id INT4 references teams(id) ON DELETE CASCADE,
   away_id INT4 references teams(id) ON DELETE CASCADE,
   result INT4
